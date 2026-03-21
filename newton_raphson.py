@@ -1,54 +1,75 @@
 import sympy as sp
 
-def newton_raphson():
-    # 1. Definimos la variable simbólica
+def ejecutar_newton_raphson():
+    # 1. Configuración de la variable
     x = sp.symbols('x')
     
-    print("--- Calculadora de Newton-Raphson ---")
-    expr_input = input("Introduce la función f(x) (ejemplo: x**2 - 2 o exp(x) - 3*x): ")
+    print("==============================================")
+    print("   METODO DE NEWTON-RAPHSON (CON ERROR %)    ")
+    print("==============================================")
+    
+    expr_input = input("1. Introduce f(x) (ej: exp(-x) - x): ")
     
     try:
-        # Convertimos el texto en una expresión de SymPy
+        # Convertir texto a función matemática
         f = sp.sympify(expr_input)
-        # Calculamos la derivada automáticamente
-        f_der = sp.diff(f, x)
+        f_der = sp.diff(f, x) # Derivada automática
         
-        print(f"f(x) = {f}")
-        print(f"f'(x) = {f_der}")
+        print(f"\nFunción definida: f(x) = {f}")
+        print(f"Derivada calculada: f'(x) = {f_der}")
+        print("----------------------------------------------")
 
-        # 2. Parámetros del método
-        x0 = float(input("Punto inicial (x0): "))
-        tol = float(input("Tolerancia (ej: 0.0001): "))
+        # 2. Entrada de parámetros
+        x0 = float(input("2. Punto inicial (x0): "))
+        tol = float(input("3. Tolerancia (ej: 0.0001): "))
         max_iter = 50
         
-        # Convertimos las expresiones a funciones de Python rápidas (lambdify)
-        f_func = sp.lambdify(x, f)
-        f_der_func = sp.lambdify(x, f_der)
+        # Convertir a funciones numéricas rápidas
+        f_num = sp.lambdify(x, f)
+        f_der_num = sp.lambdify(x, f_der)
 
-        # 3. Bucle de iteración
-        for i in range(max_iter):
-            fx = f_func(x0)
-            fdx = f_der_func(x0)
+        # 3. Encabezado de la tabla
+        print(f"\n{'Iter (i)':<8} | {'Raíz (xr)':<18} | {'Error (%)':<15}")
+        print("-" * 45)
+        
+        # Iteración 0
+        print(f"{0:<8} | {x0:<18.10f} | {'---':<15}")
 
-            if abs(fdx) < 1e-10: # Evitar división por cero
-                print("Error: Derivada cercana a cero. El método no converge.")
+        # 4. Bucle de cálculo
+        for i in range(1, max_iter + 1):
+            val_f = f_num(x0)
+            val_f_der = f_der_num(x0)
+
+            if abs(val_f_der) < 1e-15:
+                print("\n❌ Error: La derivada es cero. El método no puede continuar.")
                 return
 
-            x1 = x0 - fx / fdx
+            # Fórmula de Newton-Raphson
+            x1 = x0 - val_f / val_f_der
             
-            print(f"Iteración {i+1}: x = {x1:.6f}")
+            # Cálculo del Error Relativo Porcentual
+            if x1 != 0:
+                error_rel = abs((x1 - x0) / x1) * 100
+            else:
+                error_rel = 100
+
+            # Imprimir fila
+            print(f"{i:<8} | {x1:<18.10f} | {error_rel:<15.8f}")
 
             # Condición de parada
-            if abs(x1 - x0) < tol:
-                print(f"\n¡Raíz encontrada! x ≈ {x1:.6f} después de {i+1} iteraciones.")
+            if error_rel < tol:
+                print("-" * 45)
+                print(f"¡CONVERGENCIA ALCANZADA!")
+                print(f"LA RAÍZ ES: {x1:.10f}")
+                print(f"Total de iteraciones: {i}")
                 return
             
             x0 = x1
 
-        print("\nSe alcanzó el máximo de iteraciones sin converger totalmente.")
+        print("\n⚠️ Se alcanzó el máximo de iteraciones sin llegar a la tolerancia.")
 
     except Exception as e:
-        print(f"Error en la expresión: {e}")
+        print(f"\n❌ Error en la entrada: {e}")
 
-# Ejecutar el programa
-newton_raphson()
+if __name__ == "__main__":
+    ejecutar_newton_raphson()
